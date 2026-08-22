@@ -7,17 +7,13 @@ Untuk bisa memahami bagaimana cara bekerja CNN, Saya membuat CNN dari scratch me
 TODO:
 
 - [x] Teori penjelasan bagaimana CNN bekerja
-- [ ] Nulis CNN secara matematis (di latex)
-- [ ] Implementasi operasi dasar
-- [ ] Forward Propagation (_FeedForward_) dan Aktivasi Fungsi
-- [ ] Loss Function (MSE)
-- [ ] Backpropagation (Optimasi)
-- [ ] Training CNN
+- [x] Nulis CNN secara matematis (di latex)
+- [x] Implementasi operasi dasar
+- [x] Forward Propagation (_FeedForward_) dan Aktivasi Fungsi
+- [x] Loss Function (binary-softmax-entropy)
+- [x] Backpropagation (Optimasi + Gradient Descent)
+- [x] Training CNN
 - [ ] Validasi dengan Numerical Gradient
 - [ ] Eksperimen MATLAB
-- [ ] Python + Library
+- [x] Python + Library (Numpy)
 - [ ] Perbandingan + Nulis sebagai dokumentasi
-
----
-
-Untuk scratch disini tanpa bantuan AI.
