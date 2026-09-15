@@ -1,20 +1,20 @@
 \contentsline {section}{Panduan Notasi}{3}{section*.2}%
-\contentsline {section}{Pendahuluan}{8}{section*.3}%
-\contentsline {section}{STEP 1: Input}{8}{section*.4}%
-\contentsline {section}{STEP 2: Convolution dan ReLU}{10}{section*.5}%
-\contentsline {subsection}{Convolution}{10}{section*.6}%
-\contentsline {subsection}{ReLU}{11}{section*.7}%
-\contentsline {subsection}{Image-to-Column}{11}{section*.8}%
-\contentsline {subsection}{Conv Forward}{13}{section*.9}%
-\contentsline {section}{STEP 3: Pooling}{15}{section*.10}%
-\contentsline {section}{STEP 4: Flatten}{17}{section*.11}%
-\contentsline {section}{STEP 5: Fully Connected}{18}{section*.12}%
-\contentsline {section}{STEP 6: Softmax}{19}{section*.13}%
-\contentsline {section}{STEP 7: Loss Function}{19}{section*.14}%
-\contentsline {section}{STEP 8: Backpropagation}{21}{section*.15}%
-\contentsline {subsection}{Backward pada Fully Connected dan ReLU}{21}{section*.16}%
-\contentsline {subsection}{Backward pada Flatten dan Max Pooling}{22}{section*.17}%
-\contentsline {subsection}{Backward pada Convolution}{23}{section*.18}%
-\contentsline {section}{STEP 9: Gradient Descent}{25}{section*.19}%
-\contentsline {section}{STEP 10: Evaluasi Model}{27}{section*.20}%
-\contentsline {subsection}{Hasil Training}{28}{section*.21}%
+\contentsline {section}{Pendahuluan}{7}{section*.3}%
+\contentsline {section}{STEP 1: Input}{7}{section*.4}%
+\contentsline {section}{STEP 2: Convolution dan ReLU}{9}{section*.5}%
+\contentsline {subsection}{Convolution}{9}{section*.6}%
+\contentsline {subsection}{ReLU}{10}{section*.7}%
+\contentsline {subsection}{Image-to-Column}{10}{section*.8}%
+\contentsline {subsection}{Conv Forward}{12}{section*.9}%
+\contentsline {section}{STEP 3: Pooling}{14}{section*.10}%
+\contentsline {section}{STEP 4: Flatten}{16}{section*.11}%
+\contentsline {section}{STEP 5: Fully Connected}{17}{section*.12}%
+\contentsline {section}{STEP 6: Softmax}{18}{section*.13}%
+\contentsline {section}{STEP 7: Loss Function}{18}{section*.14}%
+\contentsline {section}{STEP 8: Backpropagation}{20}{section*.15}%
+\contentsline {subsection}{Backward pada Fully Connected dan ReLU}{20}{section*.16}%
+\contentsline {subsection}{Backward pada Flatten dan Max Pooling}{21}{section*.17}%
+\contentsline {subsection}{Backward pada Convolution}{22}{section*.18}%
+\contentsline {section}{STEP 9: Gradient Descent}{23}{section*.19}%
+\contentsline {section}{STEP 10: Evaluasi Model}{26}{section*.20}%
+\contentsline {subsection}{Hasil Training}{26}{section*.21}%

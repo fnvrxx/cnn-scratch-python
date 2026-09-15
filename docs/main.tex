@@ -143,13 +143,11 @@ $dZ_{\text{col}}$, $d\text{cols}$ & Gradien output convolution dalam bentuk matr
 \multicolumn{2}{@{}l}{\textbf{Operator matematika dan notasi NumPy}} \\
 $i$, $j$, $\ldots$ & Indeks untuk menunjuk elemen, sampel, atau posisi. Tanda $\ldots$ berarti urutan berlanjut. Indeks rumus sering mulai dari 1, sedangkan indeks array Python mulai dari 0. \\
 $\sum_{i=1}^{N}$ & Jumlahkan semua suku dari indeks $i=1$ sampai $i=N$. Dua simbol penjumlahan berarti menjumlahkan pada dua indeks, misalnya sampel dan kelas. \\
-$\frac{a}{b}$, $\cdot$, $\times$ & Pembagian dan perkalian bilangan. Pada ukuran $28\times28$, tanda $\times$ dibaca ``kali'' untuk tinggi dan lebar. \\
 $AW$, \texttt{A @ W} & Perkalian matriks. Jumlah kolom matriks kiri harus sama dengan jumlah baris matriks kanan. \\
 $\odot$, \texttt{*} & Perkalian elemen demi elemen. Pada array NumPy, \texttt{*} mengikuti aturan broadcasting; pada bilangan biasa, ini perkalian biasa. \\
 $A^T$, \texttt{A.T} & Transpose: menukar baris dan kolom matriks. Untuk tensor, \texttt{transpose(...)} mengatur ulang urutan sumbu. \\
 $e^z$, $\exp(z)$ & Fungsi eksponensial dengan bilangan dasar $e\approx2.718$. Dalam NumPy ditulis \texttt{np.exp(z)}. \\
 $\log(p)$ & Logaritma natural, yaitu logaritma berbasis $e$. Dalam NumPy ditulis \texttt{np.log(p)}. \\
-$\mathbb{1}(Z>0)$ & Fungsi indikator atau mask: 1 jika elemen $Z$ positif dan 0 jika tidak. Pada kode ditulis \texttt{Z > 0}. \\
 $\max$, \texttt{argmax} & Max mengambil nilai terbesar; argmax mengambil indeks nilai terbesar. Indeks ini digunakan untuk memilih kelas prediksi. \\
 $\in$, $[0,1]$ & Simbol $\in$ dibaca ``anggota dari''. Interval $[0,1]$ mencakup seluruh nilai dari 0 sampai 1, termasuk kedua batasnya. \\
 $\leftarrow$, \texttt{-=}, \texttt{+=} & Panah kiri berarti memperbarui nilai. \texttt{W -= lr * dW} mengurangi bobot dengan langkah gradien; \texttt{+=} menambahkan nilai ke isi variabel yang sudah ada. \\
@@ -158,11 +156,9 @@ $\rightarrow$ & Arah aliran proses, misalnya output dense menuju ReLU saat backw
 \texttt{shape}, \texttt{reshape} & Shape adalah ukuran tiap sumbu array. Reshape mengubah susunan ukuran tersebut dengan jumlah elemen tetap; \texttt{-1} meminta NumPy menghitung ukuran sumbu itu. \\
 \texttt{:}, \texttt{None} & Dalam indeks array, \texttt{:} mengambil seluruh elemen pada sumbu itu. \texttt{None} menyisipkan sumbu baru berukuran 1, misalnya untuk channel grayscale. \\
 \texttt{axis}, \texttt{keepdims} & Axis memilih sumbu operasi seperti penjumlahan. \texttt{keepdims=True} mempertahankan sumbu yang direduksi dengan ukuran 1 agar shape mudah dipadankan. \\
-\texttt{1e-12} & Penulisan ilmiah untuk $10^{-12}$. Pada kode loss, bilangan kecil ini ditambahkan sebelum logaritma untuk menghindari \texttt{log(0)}. \\
 \end{longtable}
 \endgroup
 
-Sebagai contoh, $dW=A^T dZ$ dibaca: ``gradien bobot didapat dari transpose aktivasi dikalikan dengan gradien output''. Dalam NumPy, rumus yang sama ditulis \texttt{dW = A.T @ dZ}. Dengan begitu, kita bisa menghubungkan simbol pada rumus dengan operasi yang ada di kode.
 
 \clearpage
 \section*{Pendahuluan}
@@ -562,11 +558,7 @@ Jika operasi pada fully connected layer ditulis sebagai $Z=AW+b$, maka gradienny
   db &= \sum_{i=1}^{N} dZ_i,\\
   dA &= dZW^{T}.
 \end{align}
-Urutan transpose pada rumus tersebut penting supaya shape matriks hasilnya sama dengan shape parameter yang akan diperbarui. Sementara itu, ReLU hanya meneruskan gradien jika nilai $Z$ pada forward pass lebih besar dari nol:
-\begin{equation}
-  dZ = dA \odot \mathbb{1}(Z>0).
-\end{equation}
-Simbol $\odot$ berarti perkalian elemen demi elemen dan $\mathbb{1}$ merupakan mask yang bernilai 1 ketika kondisi benar.
+Urutan transpose pada rumus tersebut penting supaya shape matriks hasilnya sama dengan shape parameter yang akan diperbarui. 
 
 \subsection*{Backward pada Flatten dan Max Pooling}
 \addcontentsline{toc}{subsection}{Backward pada Flatten dan Max Pooling}
