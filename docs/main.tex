@@ -8,6 +8,12 @@
 \usepackage{url}
 \usepackage{float}
 \usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usepackage{pgfplots}
+\usepackage{longtable}
+\usepackage{array}
+
+\pgfplotsset{compat=1.18}
 
 \emergencystretch=3em
 \Urlmuskip=0mu plus 1mu
@@ -20,6 +26,21 @@
 \tikzset{
     nnnode/.style={circle, draw, minimum size=0.8cm, inner sep=0pt},
     nnconnect/.style={-, thick, gray},
+}
+
+\newtcolorbox{prasyaratbox}{
+    enhanced,
+    colback=myblue!5,
+    colframe=myblue,
+    coltitle=white,
+    fonttitle=\bfseries,
+    title=Prasyarat Sebelum Melanjutkan,
+    boxrule=0.8pt,
+    arc=2mm,
+    left=3mm,
+    right=3mm,
+    top=2mm,
+    bottom=2mm
 }
 
 % --- Konfigurasi Warna dan Style ---
@@ -62,10 +83,100 @@
 \newpage
 
 
+\section*{Panduan Notasi}
+\addcontentsline{toc}{section}{Panduan Notasi}
+Sebelum masuk ke pembahasan, kita kenali dulu simbol yang akan sering muncul. Tidak perlu dihafalkan semuanya; kalian bisa kembali ke bagian ini ketika menemukan notasi yang belum dipahami. Beberapa huruf memiliki arti berbeda tergantung konteks rumus atau kode, jadi perhatikan juga penjelasan di sekitarnya.
+
+\begingroup
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.69\textwidth}@{}}
+\textbf{Notasi} & \textbf{Arti dan cara membacanya} \\
+\hline
+\endhead
+\multicolumn{2}{@{}l}{\textbf{Data dan ukuran tensor}} \\
+$x$, $X$ & Input model. Pada projek ini berupa nilai piksel atau kumpulan gambar MNIST. Huruf besar biasanya dipakai untuk kumpulan data atau matriks, tetapi kode juga memakai \texttt{x} untuk tensor input. \\
+$x_{\text{norm}}$ & Nilai piksel setelah normalisasi, yaitu nilai piksel awal dibagi 255. \\
+$y$, $y_i$ & Label yang benar; $y_i$ berarti label sampel ke-$i$. Dalam notebook, label berupa bilangan bulat 0 sampai 9. \\
+$y_{i,c}$ & Label dalam bentuk indikator kelas: bernilai 1 jika sampel ke-$i$ termasuk kelas $c$, dan 0 jika tidak. Bentuk ini dipakai pada rumus loss. \\
+$p$, $p_{i,c}$ & Probabilitas hasil softmax. $p_{i,c}$ berarti probabilitas sampel ke-$i$ masuk ke kelas $c$. \\
+$N$, $n$ & Jumlah sampel yang sedang diproses. Pada perhitungan loss satu batch, nilainya adalah jumlah sampel dalam batch tersebut. Pada rumus softmax, $n$ menyatakan jumlah kelas. \\
+$C$, $c$ & Pada convolution, $C$ menyatakan jumlah channel. Pada rumus loss, $C$ adalah jumlah kelas dan $c$ adalah indeks kelas. \\
+$H$, $W$ & Tinggi dan lebar gambar atau feature map ketika membahas ukuran tensor. Dalam kode, lebar juga ditulis \texttt{W\_input} atau \texttt{width}. \\
+$(N,C,H,W)$ & Urutan shape tensor gambar: jumlah sampel, channel, tinggi, lalu lebar. Contoh $(512,1,28,28)$ berarti 512 gambar grayscale berukuran $28\times28$. \\
+$H_{\text{out}}$, $W_{\text{out}}$ & Tinggi dan lebar hasil convolution atau pooling. Dalam kode ditulis \texttt{h\_out}, \texttt{w\_out}, atau menggunakan huruf besar. \\
+$K_h$, $K_w$, $K$ & Tinggi dan lebar kernel. $K$ dipakai untuk ukuran sisi jika kernel berbentuk persegi; dalam kode ditulis \texttt{KH}, \texttt{KW}, \texttt{kh}, atau \texttt{kw}. \\
+$S$, $s$, \texttt{stride} & Banyaknya langkah pergeseran kernel atau window pooling. \\
+$\text{pad}$ & Jumlah piksel padding pada tiap sisi input. Convolution di notebook menggunakan \texttt{pad=0}. \\
+$F$, $f$ & Pada convolution, jumlah filter. Pada rumus pooling, $f$ berarti ukuran window. Variabel \texttt{F} pada \texttt{forward\_cnn} berarti hasil flatten. \\
+$n_h$, $n_w$, $n_c$ & Notasi lain untuk tinggi, lebar, dan jumlah channel pada pembahasan pooling. \\
+\end{longtable}
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.69\textwidth}@{}}
+\textbf{Notasi} & \textbf{Arti dan cara membacanya} \\
+\hline
+\endhead
+\multicolumn{2}{@{}l}{\textbf{Parameter, aktivasi, dan gradien}} \\
+$W$, $W^{(l)}$ & Bobot model atau bobot pada layer ke-$l$. Berbeda dari $W$ yang berarti lebar pada shape tensor; artinya mengikuti konteks. \\
+$b$, $b^{(l)}$ & Bias, yaitu parameter yang ditambahkan pada hasil perkalian input dan bobot. \\
+$Z$, $z$ & Nilai sebelum fungsi aktivasi. Pada output terakhir, nilai ini disebut logits. \\
+$A$, $A^{(l)}$ & Hasil aktivasi pada layer ke-$l$. $A^{(0)}=X$ berarti input dianggap sebagai aktivasi awal. \\
+$\sigma$, $\sigma^{(l)}$ & Fungsi aktivasi. Pada pembahasan softmax, $\sigma(z_i)$ menyatakan probabilitas kelas ke-$i$. \\
+$l$, $(l)$ & Indeks layer. Superskrip dalam tanda kurung, seperti $W^{(l)}$, menunjukkan layer, bukan pangkat. \\
+$L$ & Pada arsitektur fully connected, jumlah total layer. Pada pembahasan loss dan optimasi, $L$ berarti nilai loss. \\
+$\theta$ & Sebutan umum untuk parameter yang dipelajari, misalnya bobot $W$ atau bias $b$. \\
+$\eta$, \texttt{lr} & Learning rate, yaitu besar langkah perubahan parameter saat update. \\
+$\frac{\partial L}{\partial x}$ & Turunan parsial loss terhadap $x$: menunjukkan bagaimana loss berubah saat $x$ berubah, dengan variabel bebas lain dianggap tetap. \\
+$\nabla_{\theta}L$ & Gradien loss terhadap parameter $\theta$, yaitu kumpulan turunan parsial untuk seluruh elemen parameter tersebut. \\
+$dZ$, $dA$, $dW$, $db$, $dX$ & Singkatan gradien loss terhadap masing-masing variabel. Contoh $dW=\partial L/\partial W$, bukan nilai bobot yang baru. \\
+\texttt{dz3}, \texttt{dW1}, \texttt{db2} & Nama gradien pada kode. Angka mengikuti penamaan operasi/parameter notebook: 1 untuk convolution, 2 untuk dense pertama, dan 3 untuk output dense. \\
+\texttt{dout} & Gradien terhadap output sebuah operasi yang diterima dari tahap backward sebelumnya. \\
+$\text{cols}$, $W_{\text{col}}$ & Matriks kumpulan patch hasil \texttt{im2col} dan matriks bobot kernel yang sudah diratakan. Subskrip \text{col} menandai bentuk matriks untuk perhitungan convolution. \\
+$dZ_{\text{col}}$, $d\text{cols}$ & Gradien output convolution dalam bentuk matriks dan gradien terhadap matriks patch input. \\
+\texttt{cache}, \texttt{params} & Cache menyimpan nilai forward yang diperlukan saat backward. Params menyimpan kumpulan bobot dan bias model. \\
+\end{longtable}
+
+\begin{longtable}{@{}>{\raggedright\arraybackslash}p{0.27\textwidth}>{\raggedright\arraybackslash}p{0.69\textwidth}@{}}
+\textbf{Notasi} & \textbf{Arti dan cara membacanya} \\
+\hline
+\endhead
+\multicolumn{2}{@{}l}{\textbf{Operator matematika dan notasi NumPy}} \\
+$i$, $j$, $\ldots$ & Indeks untuk menunjuk elemen, sampel, atau posisi. Tanda $\ldots$ berarti urutan berlanjut. Indeks rumus sering mulai dari 1, sedangkan indeks array Python mulai dari 0. \\
+$\sum_{i=1}^{N}$ & Jumlahkan semua suku dari indeks $i=1$ sampai $i=N$. Dua simbol penjumlahan berarti menjumlahkan pada dua indeks, misalnya sampel dan kelas. \\
+$\frac{a}{b}$, $\cdot$, $\times$ & Pembagian dan perkalian bilangan. Pada ukuran $28\times28$, tanda $\times$ dibaca ``kali'' untuk tinggi dan lebar. \\
+$AW$, \texttt{A @ W} & Perkalian matriks. Jumlah kolom matriks kiri harus sama dengan jumlah baris matriks kanan. \\
+$\odot$, \texttt{*} & Perkalian elemen demi elemen. Pada array NumPy, \texttt{*} mengikuti aturan broadcasting; pada bilangan biasa, ini perkalian biasa. \\
+$A^T$, \texttt{A.T} & Transpose: menukar baris dan kolom matriks. Untuk tensor, \texttt{transpose(...)} mengatur ulang urutan sumbu. \\
+$e^z$, $\exp(z)$ & Fungsi eksponensial dengan bilangan dasar $e\approx2.718$. Dalam NumPy ditulis \texttt{np.exp(z)}. \\
+$\log(p)$ & Logaritma natural, yaitu logaritma berbasis $e$. Dalam NumPy ditulis \texttt{np.log(p)}. \\
+$\mathbb{1}(Z>0)$ & Fungsi indikator atau mask: 1 jika elemen $Z$ positif dan 0 jika tidak. Pada kode ditulis \texttt{Z > 0}. \\
+$\max$, \texttt{argmax} & Max mengambil nilai terbesar; argmax mengambil indeks nilai terbesar. Indeks ini digunakan untuk memilih kelas prediksi. \\
+$\in$, $[0,1]$ & Simbol $\in$ dibaca ``anggota dari''. Interval $[0,1]$ mencakup seluruh nilai dari 0 sampai 1, termasuk kedua batasnya. \\
+$\leftarrow$, \texttt{-=}, \texttt{+=} & Panah kiri berarti memperbarui nilai. \texttt{W -= lr * dW} mengurangi bobot dengan langkah gradien; \texttt{+=} menambahkan nilai ke isi variabel yang sudah ada. \\
+$\rightarrow$ & Arah aliran proses, misalnya output dense menuju ReLU saat backward. \\
+\texttt{//} & Pembagian dengan pembulatan ke bawah. Contoh \texttt{5 // 2} menghasilkan 2; digunakan untuk menghitung ukuran output. \\
+\texttt{shape}, \texttt{reshape} & Shape adalah ukuran tiap sumbu array. Reshape mengubah susunan ukuran tersebut dengan jumlah elemen tetap; \texttt{-1} meminta NumPy menghitung ukuran sumbu itu. \\
+\texttt{:}, \texttt{None} & Dalam indeks array, \texttt{:} mengambil seluruh elemen pada sumbu itu. \texttt{None} menyisipkan sumbu baru berukuran 1, misalnya untuk channel grayscale. \\
+\texttt{axis}, \texttt{keepdims} & Axis memilih sumbu operasi seperti penjumlahan. \texttt{keepdims=True} mempertahankan sumbu yang direduksi dengan ukuran 1 agar shape mudah dipadankan. \\
+\texttt{1e-12} & Penulisan ilmiah untuk $10^{-12}$. Pada kode loss, bilangan kecil ini ditambahkan sebelum logaritma untuk menghindari \texttt{log(0)}. \\
+\end{longtable}
+\endgroup
+
+Sebagai contoh, $dW=A^T dZ$ dibaca: ``gradien bobot didapat dari transpose aktivasi dikalikan dengan gradien output''. Dalam NumPy, rumus yang sama ditulis \texttt{dW = A.T @ dZ}. Dengan begitu, kita bisa menghubungkan simbol pada rumus dengan operasi yang ada di kode.
+
+\clearpage
 \section*{Pendahuluan}
 \addcontentsline{toc}{section}{Pendahuluan}
-(TAMBAHKAN PRE-REQUISITE UNTUK BISA MEMAHAMI DOKUMEN INI : KALKULUS, ALJABAR LINEAR)
 Model CNN (\textit{Convolutional Neural Network}) adalah salah satu jenis jaringan saraf tiruan yang digunakan untuk pengolahan data seperti gambar atau time series. Di era sekarang ini, membuat model CNN hanya memerlukan import library seperti TensorFlow atau PyTorch dan menulis beberapa baris kode untuk membangun model CNN. Namun, pernahkah berpikir, bagaimana sebenarnya CNN bekerja?mengapa memerlukan parameter dari library ini? dari rasa penasaran tersebut, dilakukan pembuatan ulang CNN dari awal menggunakan Python dan NumPy, tanpa menggunakan library deep learning apapun. Dengan begitu, dapat memahami bagaimana CNN bekerja. 
+
+\begin{prasyaratbox}
+Dokumen ini membahas CNN sampai ke proses menghitung gradien secara manual. Supaya penjelasannya lebih mudah diikuti, ada dua materi dasar yang sebaiknya dipelajari terlebih dahulu:
+\begin{itemize}
+    \item \textbf{Kalkulus}: fungsi, turunan, turunan parsial, gradien, dan \textit{chain rule}. Materi ini digunakan saat menghitung seberapa besar perubahan loss terhadap setiap bobot dan bias.
+    \item \textbf{Aljabar linear}: skalar, vektor, matriks, tensor, dimensi atau \textit{shape}, transpose, \textit{reshape}, dan perkalian matriks. Materi ini digunakan hampir di seluruh operasi CNN, mulai dari convolution sampai fully connected layer.
+\end{itemize}
+Tidak harus menguasai seluruh kalkulus dan aljabar linear. Minimal, pahami mengapa matriks dapat dikalikan dan bagaimana turunan berantai digunakan untuk menelusuri perubahan dari output kembali ke input.
+\end{prasyaratbox}
 % \begin{enumerate}
 %     \item input data berupa gambar, pada projek ini kita akan menggunakan dataset MNIST, yang berisi gambar digit 0-9.(done)
 %     \item melakukan proses konvolusi pada gambar input dan menambahkan bobot dan bias, kemudian hasilnya akan diteruskan ke aktivasi ReLU (pada projek ini kita menggunakan ReLU, karena ReLU lebih cepat dan lebih baik untuk mengatasi masalah vanishing gradient) (done)
@@ -86,7 +197,7 @@ Pada projek ini, input yang digunakan adalah gambar, menggunakan dataset MNIST (
   \centering
   \includegraphics[width=0.5\textwidth]{mnist-example.png}
   \caption{Contoh gambar digit dari dataset MNIST}
-  \label{fig:perceptron}
+  \label{fig:mnist-example}
 \end{figure}
 
 Karena dataset didapat dari Yann LeCun, maka diperlukan library idx2numpy untuk mengubah dataset menjadi numpy array.
@@ -313,7 +424,43 @@ output dari proses pooling adalah $2 \times 2$, dengan channel yang sama dengan 
   \label{fig:max-pool}
 \end{figure}
 
-Pooling biasanya disebut sebagai detektor fitur.
+Pooling biasanya disebut sebagai detektor fitur. Berikut implementasi max pooling forward yang digunakan pada proyek ini:
+
+\begin{lstlisting}[language=python, caption=Forward pass max pooling]
+def maxpool_forward(x, size=2, stride=2):
+    """
+    x : input gambar
+    
+    Max pooling forward. Nilai yang diambil hanya nilai yang terbesar dari kernel
+    """
+    n, c, h, width = x.shape
+
+    h_out = (h - size) // stride + 1 # karena channel yang dipakai hanya 1, berarti 1.1 = 1
+    w_out = (width - size) // stride + 1
+
+    out = np.empty((n, c, h_out, w_out), dtype=x.dtype)
+
+    for i in range(h_out):
+        for j in range(w_out):
+            h_start = i * stride
+            w_start = j * stride
+
+            window = x[
+                :,
+                :,
+                h_start:h_start + size,
+                w_start:w_start + size
+            ] # window ini hanya yang dimodif height dan weight + size...
+
+            out[:, :, i, j] = window.max(axis=(2, 3)) # :, : -> 1. Input Image, 2. Input Channel
+            
+    # Simpan nilai yang dibutuhkan saat backward pass (posisi window
+    # dipakai untuk menentukan ke mana gradient harus dialirkan kembali)
+    pool_cache = (x, size, stride)
+
+    return out, pool_cache
+\end{lstlisting}
+Sama seperti conv2d forward, di sini juga disimpan pool cache yang berisi input dan posisi window, karena saat backpropagation kita perlu tahu piksel mana yang menghasilkan nilai maksimum agar gradien bisa dialirkan ke posisi yang tepat.
 
 \section*{STEP 4: Flatten}
 \addcontentsline{toc}{section}{STEP 4: Flatten}
@@ -354,32 +501,382 @@ Softmax merupakan fungsi aktivasi yang mengubah ke distribusi probabilitas. Maks
 \begin{equation}
   \sigma(z_i) = \frac{e^{z_i}}{\sum_{j=1}^{n} e^{z_j}}
 \end{equation}
-Pada projek ini, softmax digunakan pada output layer fully connected layer, karena cocok digunakan untuk klasifikasi. Softmax ini akan mengubah model yang hasilnya masih raw menjadi probabilitas, sehingga dapat digunakan untuk menentukan kelas dari input data. Softmax ini seperti cross-entropy loss (kita bahas di step selanjutnya).
+Pada projek ini, softmax digunakan pada output layer fully connected layer, karena cocok digunakan untuk klasifikasi. Softmax ini akan mengubah output model yang masih berupa nilai mentah atau \textit{logits} menjadi probabilitas, sehingga dapat digunakan untuk menentukan kelas dari input data. Perlu diingat bahwa softmax bukan loss function. Softmax menghasilkan probabilitas, sedangkan cross-entropy pada STEP 7 mengukur seberapa jauh probabilitas tersebut dari label yang benar.
 
 \section*{STEP 7: Loss Function}
 \addcontentsline{toc}{section}{STEP 7: Loss Function}
-Loss function merupakan fungsi yang digunakan untuk mengukur seberapa baik model dalam memprediksi output. Pada projek ini, loss function yang digunakan adalah cross-entropy loss, karena cocok digunakan untuk klasifikasi. Untuk rumus cross-entropy yang digunakan pada projek ini adalah versi binary, yaitu:
+Loss function merupakan fungsi yang digunakan untuk mengukur seberapa baik model dalam memprediksi output. Pada projek ini, loss function yang digunakan adalah categorical cross-entropy, karena MNIST memiliki 10 kelas, yaitu digit 0 sampai 9. Jadi, loss yang digunakan bukan binary cross-entropy. Untuk satu batch yang berisi $N$ sampel dan $C$ kelas, rumusnya adalah:
 \begin{equation}
-  BCE = -\frac{1}{N} \sum_{i=1}^{N} [y_i \cdot \log(p_{i}) + (1 - y_i) \cdot \log(1 - p_{i})]
+  L = -\frac{1}{N}\sum_{i=1}^{N}\sum_{c=1}^{C} y_{i,c}\log(p_{i,c})
 \end{equation}
 yang dimana:
 \begin{itemize}
-  \item $N$ adalah jumlah sampel
-  \item $y_i$ adalah true label dari sampel ke-$i$ (0 atau 1)
-  \item $p_i$ adalah model-predicted probabilitas untuk class 1 untuk sampel i
+  \item $N$ adalah jumlah sampel dalam satu batch,
+  \item $C$ adalah jumlah kelas, pada projek ini $C=10$,
+  \item $y_{i,c}$ bernilai 1 apabila sampel ke-$i$ termasuk kelas $c$, dan 0 untuk kelas lainnya,
+  \item $p_{i,c}$ adalah probabilitas hasil softmax untuk sampel ke-$i$ pada kelas $c$.
 \end{itemize}
+
+Karena hanya kelas yang benar yang memiliki nilai $y_{i,c}=1$, implementasinya cukup mengambil $-\log(p)$ pada indeks label yang benar, kemudian dirata-ratakan. Sebelum menghitung eksponensial, setiap logits dikurangi nilai maksimum pada baris tersebut. Pengurangan ini tidak mengubah hasil probabilitas softmax, tetapi membuat perhitungan lebih stabil supaya nilai eksponensial tidak terlalu besar.
+
+\begin{lstlisting}[language=Python, caption=Softmax dan categorical cross-entropy]
+def softmax_cross_entropy(z, y):
+    z = z - np.max(z, axis=1, keepdims=True)
+
+    exp_z = np.exp(z)
+    probs = exp_z / np.sum(exp_z, axis=1, keepdims=True)
+
+    n = z.shape[0]
+    loss = -np.log(probs[np.arange(n), y] + 1e-12).mean()
+
+    dz = probs.copy()
+    dz[np.arange(n), y] -= 1
+    dz /= n
+
+    return loss, dz
+\end{lstlisting}
+
+Ketika softmax dan categorical cross-entropy digabungkan, gradien loss terhadap logits menjadi lebih sederhana:
+\begin{equation}
+  \frac{\partial L}{\partial z} = \frac{p-y}{N}.
+\end{equation}
+Nilai gradien ini disimpan pada variabel \texttt{dz} dan menjadi titik awal proses backpropagation pada STEP 8 \cite{goodfellow2016deep}.
 
 \section*{STEP 8: Backpropagation}
 \addcontentsline{toc}{section}{STEP 8: Backpropagation}
-% Fully connected bisa kita sebut sebagai forward-pass, mengapa demikian?karena di fully connected tidak melakukan secara optimasi. Oleh karena itu, dilakukan optimasi yang kita namakan sebagai Backpropagation.
+Pada forward pass, data bergerak dari input menuju output sampai menghasilkan loss. Namun, model belum mengetahui bobot mana yang harus diperbaiki. Backpropagation digunakan untuk menghitung seberapa besar pengaruh setiap bobot dan bias terhadap loss dengan menelusuri jaringan dari output kembali ke input. Ide ini menggunakan \textit{chain rule} dari kalkulus \cite{rumelhart1986backprop}.
+
+Sebagai contoh sederhana, apabila loss $L$ dipengaruhi oleh $z$, sedangkan $z$ dipengaruhi oleh $x$, maka:
+\begin{equation}
+  \frac{\partial L}{\partial x}
+  = \frac{\partial L}{\partial z}
+    \frac{\partial z}{\partial x}.
+\end{equation}
+Artinya, gradien dari layer setelahnya dikalikan dengan turunan lokal dari operasi yang sedang dilewati. Inilah alasan nilai-nilai pada forward pass disimpan ke dalam \texttt{layer\_caches}: nilai tersebut dapat digunakan kembali tanpa menghitung forward pass dari awal.
+
+\subsection*{Backward pada Fully Connected dan ReLU}
+\addcontentsline{toc}{subsection}{Backward pada Fully Connected dan ReLU}
+Jika operasi pada fully connected layer ditulis sebagai $Z=AW+b$, maka gradiennya adalah:
+\begin{align}
+  dW &= A^{T}dZ,\\
+  db &= \sum_{i=1}^{N} dZ_i,\\
+  dA &= dZW^{T}.
+\end{align}
+Urutan transpose pada rumus tersebut penting supaya shape matriks hasilnya sama dengan shape parameter yang akan diperbarui. Sementara itu, ReLU hanya meneruskan gradien jika nilai $Z$ pada forward pass lebih besar dari nol:
+\begin{equation}
+  dZ = dA \odot \mathbb{1}(Z>0).
+\end{equation}
+Simbol $\odot$ berarti perkalian elemen demi elemen dan $\mathbb{1}$ merupakan mask yang bernilai 1 ketika kondisi benar.
+
+\subsection*{Backward pada Flatten dan Max Pooling}
+\addcontentsline{toc}{subsection}{Backward pada Flatten dan Max Pooling}
+Flatten tidak mengubah nilai, tetapi hanya mengubah shape. Oleh karena itu, backward flatten cukup mengembalikan gradien ke shape sebelum flatten. Pada max pooling, gradien hanya dikirim ke posisi yang menghasilkan nilai maksimum pada setiap window. Posisi lainnya mendapat gradien nol.
+
+\begin{lstlisting}[language=Python, caption=Backward max pooling dan flatten]
+def maxpool_backward(dout, pool_cache):
+    x, size, stride = pool_cache
+    n, c, h, width = x.shape
+    h_out, w_out = dout.shape[2], dout.shape[3]
+
+    dx = np.zeros_like(x)
+
+    for i in range(h_out):
+        for j in range(w_out):
+            h_start = i * stride
+            w_start = j * stride
+
+            window = x[:, :, h_start:h_start + size,
+                       w_start:w_start + size]
+            window_max = window.max(
+                axis=(2, 3), keepdims=True
+            )
+            mask = (window == window_max)
+
+            dx[:, :, h_start:h_start + size,
+               w_start:w_start + size] += (
+                mask * dout[:, :, i, j][:, :, None, None]
+            )
+
+    return dx
+
+def flatten_backward(dout, shape):
+    return dout.reshape(shape)
+\end{lstlisting}
+
+Apabila ada dua nilai maksimum yang sama di dalam satu window, implementasi di atas akan mengalirkan gradien ke seluruh posisi yang sama-sama maksimum. Hal ini terjadi karena seluruh posisi tersebut bernilai \texttt{True} pada mask.
+
+\subsection*{Backward pada Convolution}
+\addcontentsline{toc}{subsection}{Backward pada Convolution}
+Pada forward convolution, patch input sudah diubah menjadi matriks \texttt{cols}. Misalkan $dZ_{\text{col}}$ adalah gradien output convolution yang sudah diratakan, maka:
+\begin{align}
+  dW_{\text{col}} &= \text{cols}^{T}dZ_{\text{col}},\\
+  db &= \sum dZ_{\text{col}},\\
+  d\text{cols} &= dZ_{\text{col}}W_{\text{col}}^{T}.
+\end{align}
+Setelah mendapatkan $d\text{cols}$, setiap patch dikembalikan ke posisi asalnya pada input. Jika beberapa patch bertumpuk pada piksel yang sama, gradiennya dijumlahkan.
+
+\begin{lstlisting}[language=Python, caption=Backward layer convolution]
+def conv2d_backward(dz, conv_cache):
+    x_pad, w, stride, cols, x_shape = conv_cache
+    n, c, h, width = x_shape
+    f, _, kh, kw = w.shape
+    h_out, w_out = dz.shape[2], dz.shape[3]
+
+    w_col = w.reshape(f, -1).T
+    dz_reshaped = dz.transpose(0, 2, 3, 1).reshape(
+        n * h_out * w_out, f
+    )
+
+    dw_col = cols.T @ dz_reshaped
+    dw = dw_col.T.reshape(w.shape)
+    db = dz_reshaped.sum(axis=0)
+
+    dcols = dz_reshaped @ w_col.T
+    dcols = dcols.reshape(n, h_out, w_out, c, kh, kw)
+    dx_pad = np.zeros_like(x_pad)
+
+    for i in range(kh):
+        for j in range(kw):
+            patch = dcols[:, :, :, :, i, j]
+            patch = patch.transpose(0, 3, 1, 2)
+            dx_pad[:, :,
+                   i:i + stride * h_out:stride,
+                   j:j + stride * w_out:stride] += patch
+
+    return dx_pad, dw, db
+\end{lstlisting}
+
+Semua backward layer tersebut kemudian disusun dengan urutan yang berlawanan dari forward pass: output dense $\rightarrow$ ReLU dense $\rightarrow$ dense pertama $\rightarrow$ flatten $\rightarrow$ max pooling $\rightarrow$ ReLU convolution $\rightarrow$ convolution.
+
+\begin{lstlisting}[language=Python, caption=Urutan backpropagation seluruh CNN]
+def backward_cnn(dz3, layer_caches, params):
+    W1, b1, W2, b2, W3, b3 = params
+
+    # Output dense
+    A2, W3 = layer_caches['dense3']
+    dW3 = A2.T @ dz3
+    db3 = dz3.sum(axis=0)
+    dA2 = dz3 @ W3.T
+
+    # ReLU dan dense pertama
+    dz2 = dA2 * (layer_caches['relu2'] > 0)
+    F, W2 = layer_caches['dense2']
+    dW2 = F.T @ dz2
+    db2 = dz2.sum(axis=0)
+    dF = dz2 @ W2.T
+
+    # Flatten, max pooling, dan ReLU convolution
+    dP1 = flatten_backward(dF, layer_caches['flat'])
+    dA1 = maxpool_backward(dP1, layer_caches['pool1'])
+    dz1 = dA1 * (layer_caches['relu1'] > 0)
+
+    # Convolution
+    dX, dW1, db1 = conv2d_backward(
+        dz1, layer_caches['conv1']
+    )
+
+    return dW1, db1, dW2, db2, dW3, db3
+\end{lstlisting}
+Hasil fungsi ini masih berupa gradien. Parameter model baru benar-benar berubah ketika gradien tersebut digunakan pada tahap optimasi berikutnya.
 
 \section*{STEP 9: Gradient Descent}
-\addcontentsline{toc}{section}{STEP 9: Gradien Descent}
-\section*{STEP 10: Evaluasi Model}
-\addcontentsline{toc}{section}{STEP 10 : Evaluasi Model}
-(bikin epoch, batch size, dan learning rate sebagai hyperparameter, dan buat grafik loss function dan akurasi). Seberapa pengaruhnya dan tam
-\section*{Kesimpulan}
+\addcontentsline{toc}{section}{STEP 9: Gradient Descent}
+Backpropagation dan gradient descent memiliki tugas yang berbeda. Backpropagation menghitung gradien, sedangkan gradient descent menggunakan gradien tersebut untuk memperbarui parameter supaya loss bergerak ke arah yang lebih kecil. Untuk setiap parameter $\theta$, proses update ditulis sebagai:
+\begin{equation}
+  \theta \leftarrow \theta - \eta\nabla_{\theta}L,
+\end{equation}
+yang dimana $\eta$ adalah learning rate. Tanda minus digunakan karena gradien menunjukkan arah kenaikan paling cepat, sedangkan tujuan training adalah menurunkan loss \cite{goodfellow2016deep}.
 
+Sebelum melihat implementasinya, ada tiga hyperparameter penting:
+\begin{itemize}
+  \item \textbf{Epoch} adalah satu kali proses ketika seluruh data training sudah dilewati. Epoch terlalu sedikit dapat membuat model belum selesai belajar, sedangkan terlalu banyak dapat meningkatkan risiko overfitting.
+  \item \textbf{Batch size} adalah jumlah sampel yang diproses sebelum parameter diperbarui. Batch kecil menghasilkan update lebih sering dan lebih berisik, sedangkan batch besar membutuhkan memori lebih banyak tetapi perhitungannya biasanya lebih stabil.
+  \item \textbf{Learning rate} menentukan besar langkah update. Nilai terlalu kecil membuat training lambat, sedangkan nilai terlalu besar dapat membuat loss naik-turun atau bahkan gagal konvergen.
+\end{itemize}
+
+Pada awal setiap epoch, indeks data diacak menggunakan fungsi \texttt{permutation} dari NumPy. Setelah satu batch menyelesaikan forward pass dan backward pass, seluruh bobot dan bias diperbarui menggunakan learning rate yang sama.
+
+\begin{lstlisting}[language=Python, caption=Training CNN menggunakan mini-batch gradient descent]
+def train_cnn_with_history(
+    X, y, X_val, y_val,
+    epochs=1, batch_size=128, lr=0.01
+):
+    params = init_parameters_cnn()
+    n = X.shape[0]
+    history = {
+        'train_loss': [], 'train_acc': [],
+        'val_loss': [], 'val_acc': [],
+        'batch_loss': [],
+    }
+
+    for epoch in range(1, epochs + 1):
+        idx = np.random.permutation(n)
+        X_sh, y_sh = X[idx], y[idx]
+        losses, correct, total = [], 0, 0
+
+        for start in range(0, n, batch_size):
+            xb = X_sh[start:start + batch_size]
+            yb = y_sh[start:start + batch_size]
+
+            logits, layer_caches = forward_cnn(xb, params)
+            loss, dz3 = softmax_cross_entropy(logits, yb)
+            losses.append(loss)
+            history['batch_loss'].append(float(loss))
+            predictions = np.argmax(logits, axis=1)
+            correct += np.sum(predictions == yb)
+            total += yb.shape[0]
+
+            gradients = backward_cnn(
+                dz3, layer_caches, params
+            )
+            dW1, db1, dW2, db2, dW3, db3 = gradients
+            W1, b1, W2, b2, W3, b3 = params
+
+            W1 -= lr * dW1; b1 -= lr * db1
+            W2 -= lr * dW2; b2 -= lr * db2
+            W3 -= lr * dW3; b3 -= lr * db3
+            params = (W1, b1, W2, b2, W3, b3)
+
+        train_loss = np.mean(losses)
+        train_acc = correct / total
+        val_loss, val_acc = evaluate_cnn(
+            X_val, y_val, params
+        )
+
+        history['train_loss'].append(train_loss)
+        history['train_acc'].append(train_acc)
+        history['val_loss'].append(val_loss)
+        history['val_acc'].append(val_acc)
+
+    return params, history
+\end{lstlisting}
+
+Eksperimen pada notebook menggunakan 5 epoch, batch size 512, dan learning rate 0.01. Nilai tersebut bukan aturan tetap. Hyperparameter dapat diubah dan dibandingkan dengan melihat apakah loss turun secara stabil serta apakah akurasi pada data yang tidak digunakan untuk update ikut membaik.
+
+\section*{STEP 10: Evaluasi Model}
+\addcontentsline{toc}{section}{STEP 10: Evaluasi Model}
+Setelah parameter diperbarui, model perlu dievaluasi untuk melihat apakah prediksinya membaik. Fungsi berikut membagi data evaluasi menjadi beberapa batch supaya seluruh data tidak harus dimasukkan ke memori pada waktu yang sama.
+
+\begin{lstlisting}[language=Python, caption=Menghitung loss dan accuracy model]
+def evaluate_cnn(X, y, params, batch_size=512):
+    total_loss = 0.0
+    correct = 0
+    total = 0
+
+    for start in range(0, X.shape[0], batch_size):
+        xb = X[start:start + batch_size]
+        yb = y[start:start + batch_size]
+
+        logits, _ = forward_cnn(xb, params)
+        loss, _ = softmax_cross_entropy(logits, yb)
+
+        bs = yb.shape[0]
+        total_loss += loss * bs
+        predictions = np.argmax(logits, axis=1)
+        correct += np.sum(predictions == yb)
+        total += bs
+
+    return total_loss / total, correct / total
+\end{lstlisting}
+
+Loss setiap batch dikalikan kembali dengan jumlah sampel pada batch tersebut sebelum dijumlahkan. Hal ini penting karena batch terakhir belum tentu memiliki ukuran yang sama. Accuracy dihitung dengan rumus:
+\begin{equation}
+  \text{accuracy} = \frac{\text{jumlah prediksi benar}}
+  {\text{jumlah seluruh sampel}}.
+\end{equation}
+Kelas prediksi diambil dari indeks logits terbesar menggunakan \texttt{argmax}. Softmax tidak perlu dihitung lagi untuk menentukan kelas, karena softmax mempertahankan urutan nilai logits.
+
+\subsection*{Hasil Training}
+\addcontentsline{toc}{subsection}{Hasil Training}
+Berikut hasil yang tersimpan pada output notebook ketika model dilatih selama 5 epoch.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabular}{c|cc|cc}
+\hline
+\textbf{Epoch} & \textbf{Train Loss} & \textbf{Train Accuracy} & \textbf{Eval. Loss} & \textbf{Eval. Accuracy} \\
+\hline
+1 & 1.5544 & 57.71\% & 0.8842 & 80.15\% \\
+2 & 0.6626 & 83.73\% & 0.5043 & 86.79\% \\
+3 & 0.4622 & 87.32\% & 0.3994 & 89.18\% \\
+4 & 0.3899 & 89.07\% & 0.3492 & 90.26\% \\
+5 & 0.3506 & 90.04\% & 0.3190 & 91.00\% \\
+\hline
+\end{tabular}
+\caption{Loss dan accuracy untuk setiap epoch}
+\label{tab:training-history}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.92\linewidth,
+    height=6cm,
+    title={Loss: Training vs Evaluation},
+    xlabel={Epoch},
+    ylabel={Loss},
+    xtick={1,2,3,4,5},
+    grid=major,
+    legend style={font=\scriptsize, at={(0.98,0.98)}, anchor=north east}
+]
+\addplot[color=myblue, mark=*] coordinates {
+    (1,1.5544) (2,0.6626) (3,0.4622) (4,0.3899) (5,0.3506)
+};
+\addlegendentry{Training}
+\addplot[color=myred, mark=square*] coordinates {
+    (1,0.8842) (2,0.5043) (3,0.3994) (4,0.3492) (5,0.3190)
+};
+\addlegendentry{Evaluation}
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\begin{tikzpicture}
+\begin{axis}[
+    width=0.82\linewidth,
+    height=6cm,
+    title={Accuracy: Training vs Evaluation},
+    xlabel={Epoch},
+    ylabel={Accuracy},
+    ymin=0.5,
+    ymax=1.0,
+    xtick={1,2,3,4,5},
+    grid=major,
+    legend style={font=\scriptsize, at={(0.98,0.02)}, anchor=south east}
+]
+\addplot[color=myblue, mark=*] coordinates {
+    (1,0.5771) (2,0.8373) (3,0.8732) (4,0.8907) (5,0.9004)
+};
+\addlegendentry{Training}
+\addplot[color=myred, mark=square*] coordinates {
+    (1,0.8015) (2,0.8679) (3,0.8918) (4,0.9026) (5,0.9100)
+};
+\addlegendentry{Evaluation}
+\end{axis}
+\end{tikzpicture}
+\end{minipage}
+\caption{Perubahan loss dan accuracy selama training}
+\label{fig:training-history}
+\end{figure}
+
+Dari tabel dan grafik, train loss turun dari 1.5544 menjadi 0.3506, sedangkan evaluation loss turun dari 0.8842 menjadi 0.3190. Pada saat yang sama, train accuracy naik menjadi 90.04\% dan evaluation accuracy menjadi 91.00\%. Pola ini menunjukkan bahwa parameter yang diperbarui oleh gradient descent membuat prediksi model semakin baik pada lima epoch tersebut. Namun, hasil ini belum cukup untuk menyimpulkan bahwa konfigurasi tersebut adalah konfigurasi terbaik; eksperimen dengan epoch, batch size, dan learning rate lain tetap diperlukan.
+
+\begin{tcolorbox}[
+    colback=myred!5,
+    colframe=myred,
+    title=Catatan tentang data evaluasi,
+    fonttitle=\bfseries
+]
+Di notebook, fungsi training menerima nama parameter \texttt{X\_val} dan \texttt{y\_val}, tetapi argumen yang diberikan sebenarnya adalah \texttt{X\_test} dan \texttt{y\_test}. Artinya, test set dilihat pada setiap epoch. Hasil di atas tetap ditampilkan sesuai notebook, tetapi untuk eksperimen yang lebih ketat sebaiknya data dibagi menjadi training, validation, dan test. Validation set digunakan untuk memilih hyperparameter, sedangkan test set digunakan satu kali setelah seluruh keputusan training selesai. Pembagian ini membantu menjaga evaluasi akhir tetap netral \cite{goodfellow2016deep}.
+\end{tcolorbox}
+
+Implementasi CNN dari awal ini memperlihatkan hubungan lengkap antara forward pass, loss, backpropagation, gradient descent, dan evaluasi. Pendekatan berbasis gradien yang sama juga menjadi dasar penggunaan CNN pada pengenalan digit tulisan tangan \cite{lecun1998gradient}.
 
 % ============================================================
 \begin{thebibliography}{99}
@@ -392,6 +889,18 @@ Goodfellow, I., Bengio, Y., \& Courville, A. (2016). \textit{Deep Learning}. MIT
 
 \bibitem{ChittaRanjan2020}
 Chitta Ranjan, S., \& Saha, S. (2020). \textit{Understanding Deep Learning Application in Rare Event Prediction}. Springer.
+
+\bibitem{rumelhart1986backprop}
+Rumelhart, D. E., Hinton, G. E., \& Williams, R. J. (1986).
+\textit{Learning Representations by Back-Propagating Errors}.
+Nature, 323, 533--536.
+\href{https://doi.org/10.1038/323533a0}{doi:10.1038/323533a0}.
+
+\bibitem{lecun1998gradient}
+LeCun, Y., Bottou, L., Bengio, Y., \& Haffner, P. (1998).
+\textit{Gradient-Based Learning Applied to Document Recognition}.
+Proceedings of the IEEE, 86(11), 2278--2324.
+\href{https://doi.org/10.1109/5.726791}{doi:10.1109/5.726791}.
 \end{thebibliography}
 
 \end{document}
